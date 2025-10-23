@@ -1,0 +1,121 @@
+{
+    "¿Tu carta es terrestre?": {
+        "sí": {
+            "¿Tu carta ataca estructuras?": {
+                "sí": {
+                    "¿Tu carta es un tanque?": {
+                        "sí": "Gigante",
+                        "no": "Montapuercos"
+                    }
+                },
+                "no": {
+                    "¿Es tropa cuerpo a cuerpo?": {
+                        "sí": {
+                            "¿Tiene escudo?": {
+                                "sí": "Guardias",
+                                "no": "Mini P.E.K.K.A"
+                            }
+                        },
+                        "no": {
+                            "¿Lanza proyectiles?": {
+                                "sí": {
+                                    "tiene daño de area?": {
+                                        "sí": "Lanzafuegos",
+                                        "no": "Mosquetera"
+                                    }
+                                },
+                                "no": "Mago"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "no": {
+            "¿Tu carta vuela?": {
+                "sí": {
+                    "¿Dispara desde lejos?": {
+                        "sí": {
+                            "¿Hace daño en área?": {
+                                "sí": "Bebé Dragón",
+                                "no": "Arqueras"
+                            }
+                        },
+                        "no": {
+                            "¿Es tropa individual?": {
+                                "sí": "Megaesbirro",
+                                "no": "Horda de Esbirros"
+                            }
+                        }
+                    }
+                },
+                "no": {
+                    "¿Tu carta es un hechizo?": {
+                        "sí": {
+                            "¿Hace daño directo?": {
+                                "sí": {
+                                    "¿Afecta en área?": {
+                                        "sí": "Bola de Fuego",
+                                        "no": "Rayo"
+                                    }
+                                },
+                                "no": "Descarga"
+                            }
+                        },
+                        "no": {
+                            "¿Es una estructura defensiva?": {
+                                "sí": {
+                                    "¿Ataca aire y tierra?": {
+                                        "sí": "Torre Infernal",
+                                        "no": "Cañón"
+                                    }
+                                },
+                                "no": {
+                                    "¿Tu carta congela enemigos?": {
+                                        "sí": "Mago de Hielo",
+                                        "no": {
+                                            "¿Tu carta hace daño eléctrico a varios enemigos?": {
+                                                "sí": "Dragón Eléctrico",
+                                                "no": {
+                                                    "¿Tu carta hace carga?": {
+                                                        "sí": "Príncipe",
+                                                        "no": {
+                                                            "¿Tu carta embiste rápidamente?": {
+                                                                "sí": "Bandida",
+                                                                "no": {
+                                                                    "¿Tu carta puede moverse rápido mientras ataca?": {
+                                                                        "sí": "Caballero Dorado",
+                                                                        "no": {
+                                                                            "¿Tu carta electrocuta enemigos cercanos?": {
+                                                                                "sí": "Mago Eléctrico",
+                                                                                "no": {
+                                                                                    "¿Tu carta cura a otras tropas?": {
+                                                                                        "sí": "Sanadora",
+                                                                                        "no": {
+                                                                                            "¿Tu carta genera esqueletos?": {
+                                                                                                "sí": "Bruja",
+                                                                                                "no": "Recolector de Elixir"
+                                                                                            }
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
