@@ -19,7 +19,7 @@
                         "no": {
                             "¿Lanza proyectiles?": {
                                 "sí": {
-                                    "tiene daño de area?": {
+                                    "Tiene daño de area?": {
                                         "sí": {
                                             "Tu carta es una maquina?": {
                                                 "sí": "Chispitas",

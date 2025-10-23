@@ -6,7 +6,7 @@ import json
 ARCHIVO = "arbol.json"
 
 # ======================
-# FUNCIONES BASE (MISMO CÓDIGO DE TU AKINATOR)
+# FUNCIONES BASE
 # ======================
 
 def arbol_inicial():
@@ -152,7 +152,7 @@ class AkinatorGUI:
         self.root.configure(bg="#242424")
 
         self.arbol = cargar_arbol()
-        self.pila = []  # para regresar al nodo anterior
+        self.pila = []
         self.nodo_actual = self.arbol
 
         # Pantalla de inicio
@@ -164,7 +164,6 @@ class AkinatorGUI:
         self.titulo.pack(pady=20)
 
         try:
-            # Asegúrate de tener una imagen llamada carta.png en la misma carpeta
             self.img = tk.PhotoImage(file="carta.png")
             self.img_label = tk.Label(self.frame_inicio, image=self.img, bg="#242424")
             self.img_label.pack(pady=10)
@@ -175,7 +174,7 @@ class AkinatorGUI:
                                      bg="gold", command=self.iniciar_juego)
         self.boton_jugar.pack(pady=40)
 
-        # Frame del juego (oculto al inicio)
+        # Frame del juego
         self.frame_juego = tk.Frame(self.root, bg="#242424")
 
         self.pregunta_label = tk.Label(self.frame_juego, text="", font=("Arial", 18), fg="white", bg="#242424", wraplength=500)
@@ -192,14 +191,20 @@ class AkinatorGUI:
                                   bg="red", fg="white", width=10, command=lambda: self.responder("no"))
         self.boton_no.grid(row=0, column=1, padx=15)
 
+        # Botón de nueva ronda
+        self.boton_reiniciar = tk.Button(self.frame_juego, text="Nueva ronda", font=("Arial", 16, "bold"),
+                                         bg="blue", fg="white", command=self.nueva_ronda)
+        self.boton_reiniciar.pack(pady=20)
+        self.boton_reiniciar.config(state="disabled")  # al inicio está deshabilitado
+
     def iniciar_juego(self):
-        """Cambia a la pantalla de juego y muestra la primera pregunta"""
         self.frame_inicio.pack_forget()
         self.frame_juego.pack(expand=True, fill="both")
+        self.nodo_actual = self.arbol
+        self.pila = []
         self.mostrar_pregunta(self.nodo_actual)
 
     def mostrar_pregunta(self, nodo):
-        """Muestra la pregunta o el intento de carta"""
         if isinstance(nodo, str):
             self.pregunta_label.config(text=f"¿Tu carta es {nodo}?")
         elif isinstance(nodo, dict):
@@ -207,17 +212,14 @@ class AkinatorGUI:
             self.pregunta_label.config(text=pregunta)
 
     def responder(self, respuesta):
-        """Gestiona las respuestas 'sí' o 'no'"""
         if isinstance(self.nodo_actual, str):
             if respuesta == "sí":
                 messagebox.showinfo("Akinator", "¡Lo adiviné!")
-                guardar_arbol(self.arbol)
-                self.root.destroy()
             else:
                 self.aprender()
+            self.boton_reiniciar.config(state="normal")  # habilitamos nueva ronda
             return
 
-        # Si es pregunta
         pregunta = next(iter(self.nodo_actual))
         siguiente = self.nodo_actual[pregunta].get(respuesta)
 
@@ -230,7 +232,6 @@ class AkinatorGUI:
         self.mostrar_pregunta(self.nodo_actual)
 
     def aprender(self):
-        """Cuando no adivina, aprende una nueva carta"""
         carta_nueva = tk.simpledialog.askstring("Aprender", "¿Cuál era tu carta?")
         if not carta_nueva:
             return
@@ -256,8 +257,17 @@ class AkinatorGUI:
 
         guardar_arbol(self.arbol)
         messagebox.showinfo("Akinator", "¡He aprendido una nueva carta!")
-        self.root.destroy()
 
+    def nueva_ronda(self):
+        """Reinicia la partida sin cerrar la ventana"""
+        self.nodo_actual = self.arbol
+        self.pila = []
+        self.mostrar_pregunta(self.nodo_actual)
+        self.boton_reiniciar.config(state="disabled")
+
+# ======================
+# MAIN
+# ======================
 
 if __name__ == "__main__":
     root = tk.Tk()
