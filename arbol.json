@@ -20,7 +20,12 @@
                             "¿Lanza proyectiles?": {
                                 "sí": {
                                     "tiene daño de area?": {
-                                        "sí": "Lanzafuegos",
+                                        "sí": {
+                                            "Tu carta es una maquina?": {
+                                                "sí": "Chispitas",
+                                                "no": "Lanzafuegos"
+                                            }
+                                        },
                                         "no": "Mosquetera"
                                     }
                                 },

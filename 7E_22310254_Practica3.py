@@ -1,17 +1,15 @@
-# akinator_clash.py
-import json                     # para leer/escribir el JSON
-import os                       # para comprobar existencia de archivos
+import tkinter as tk
+from tkinter import messagebox, simpledialog
+import os
+import json
 
-ARCHIVO = "arbol.json"          # nombre del archivo que guardará el árbol
+ARCHIVO = "arbol.json"
 
-# -----------------------------------------------------------
-# ÁRBOL INICIAL (formato consistente):
-# - Un nodo pregunta es: { "Pregunta?": { "sí": <subnodo>, "no": <subnodo> } }
-# - Una hoja/carta es una cadena: "Nombre Carta"
-# -----------------------------------------------------------
+# ======================
+# FUNCIONES BASE (MISMO CÓDIGO DE TU AKINATOR)
+# ======================
 
 def arbol_inicial():
-    """Devuelve el árbol base (24 cartas) como estructura de Python."""
     return {
         "¿Tu carta es terrestre?": {
             "sí": {
@@ -79,7 +77,6 @@ def arbol_inicial():
                                             "no": "Cañón"
                                         }
                                     },
-                                    # Nodo para preguntas especiales que distinguen las legendarias restantes
                                     "no": {
                                         "¿Tu carta congela enemigos?": {
                                             "sí": "Mago de Hielo",
@@ -130,107 +127,139 @@ def arbol_inicial():
         }
     }
 
-# -----------------------------------------------------------
-# Cargar / Guardar
-# -----------------------------------------------------------
-
 def cargar_arbol():
-    """Carga el árbol desde ARCHIVO. Si no existe o está dañado, devuelve el árbol inicial."""
-    if os.path.exists(ARCHIVO):                               # si el archivo existe
+    if os.path.exists(ARCHIVO):
         try:
-            with open(ARCHIVO, "r", encoding="utf-8") as f:   # abrir en modo lectura
-                return json.load(f)                          # y cargar JSON a estructura Python
-        except (json.JSONDecodeError, OSError):
-            print(" Archivo JSON dañado o ilegible. Se cargará el árbol inicial.")
-    # si no existe o está dañado, devolvemos el árbol base
+            with open(ARCHIVO, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except:
+            pass
     return arbol_inicial()
 
 def guardar_arbol(arbol):
-    """Guarda la estructura del árbol en ARCHIVO (JSON, legible)."""
     with open(ARCHIVO, "w", encoding="utf-8") as f:
         json.dump(arbol, f, ensure_ascii=False, indent=4)
 
-# -----------------------------------------------------------
-# Utilidad para leer respuestas válidas
-# -----------------------------------------------------------
+# ======================
+# INTERFAZ GRÁFICA
+# ======================
 
-def leer_respuesta(prompt):
-    """Pide repetidamente una respuesta hasta obtener 'sí' o 'no'. Devuelve 'sí' o 'no'."""
-    while True:
-        r = input(prompt + " (sí/no): ").strip().lower()   # leer entrada del usuario
-        if r in ("sí", "si"):                              # aceptar 'sí' o 'si'
-            return "sí"
-        if r == "no":
-            return "no"
-        print("Respuesta no válida. Escribe 'sí' o 'no'.")
+class AkinatorGUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Akinator Clash Royale")
+        self.root.geometry("800x800")
+        self.root.configure(bg="#242424")
 
-# -----------------------------------------------------------
-# Lógica recursiva principal
-# -----------------------------------------------------------
+        self.arbol = cargar_arbol()
+        self.pila = []  # para regresar al nodo anterior
+        self.nodo_actual = self.arbol
 
-def recorrer_nodo(nodo):
-    """
-    Recorre un nodo (que puede ser cadena = carta, o dict = pregunta).
-    Devuelve el nodo actualizado (importante para que el aprendizaje se propague).
-    """
-    # caso hoja: nodo es una carta (string)
-    if isinstance(nodo, str):
-        # preguntar por la carta
-        respuesta = leer_respuesta(f"¿Tu carta es {nodo}?")
-        if respuesta == "sí":
-            print("¡Lo adiviné!")
-            return nodo                                  # la hoja queda igual
-        # si no acierta, aprendemos: pedimos la carta correcta y una pregunta
-        nueva_carta = input("No lo acerté. ¿Cuál era tu carta? ").strip()
-        # pedimos la pregunta que diferencia la nueva carta de la suposición 'nodo'
-        nueva_pregunta = input(f"Escribe una pregunta que distinga a {nueva_carta} de {nodo}: ").strip()
-        # pedimos cuál sería la respuesta correcta para la nueva carta
-        respuesta_correcta = leer_respuesta(f"Si la carta fuera {nueva_carta}, ¿la respuesta a tu pregunta sería?")
-        # construir el nuevo subárbol según la respuesta correcta
-        if respuesta_correcta == "sí":
-            return { nueva_pregunta: {"sí": nueva_carta, "no": nodo} }
-        else:
-            return { nueva_pregunta: {"sí": nodo, "no": nueva_carta} }
+        # Pantalla de inicio
+        self.frame_inicio = tk.Frame(self.root, bg="#242424")
+        self.frame_inicio.pack(expand=True, fill="both")
 
-    # caso pregunta: nodo es un diccionario con una sola clave: la pregunta
-    if isinstance(nodo, dict):
-        # extraer la pregunta (primera clave)
-        pregunta = next(iter(nodo))
-        # obtener el mapa de respuestas del nodo actual
-        mapa = nodo[pregunta]
-        # leer respuesta del usuario
-        respuesta = leer_respuesta(pregunta)
-        # si la clave de respuesta existe, continuar, si no, tratar como desconocido
-        siguiente = mapa.get(respuesta)
+        self.titulo = tk.Label(self.frame_inicio, text="Akinator Clash Royale",
+                               font=("Arial", 26, "bold"), fg="gold", bg="#242424")
+        self.titulo.pack(pady=20)
+
+        try:
+            # Asegúrate de tener una imagen llamada carta.png en la misma carpeta
+            self.img = tk.PhotoImage(file="carta.png")
+            self.img_label = tk.Label(self.frame_inicio, image=self.img, bg="#242424")
+            self.img_label.pack(pady=10)
+        except:
+            tk.Label(self.frame_inicio, text="[Imagen no encontrada]", fg="white", bg="#242424").pack(pady=20)
+
+        self.boton_jugar = tk.Button(self.frame_inicio, text="Jugar", font=("Arial", 18, "bold"),
+                                     bg="gold", command=self.iniciar_juego)
+        self.boton_jugar.pack(pady=40)
+
+        # Frame del juego (oculto al inicio)
+        self.frame_juego = tk.Frame(self.root, bg="#242424")
+
+        self.pregunta_label = tk.Label(self.frame_juego, text="", font=("Arial", 18), fg="white", bg="#242424", wraplength=500)
+        self.pregunta_label.pack(pady=40)
+
+        botones_frame = tk.Frame(self.frame_juego, bg="#242424")
+        botones_frame.pack(pady=30)
+
+        self.boton_si = tk.Button(botones_frame, text="Sí", font=("Arial", 16, "bold"),
+                                  bg="green", fg="white", width=10, command=lambda: self.responder("sí"))
+        self.boton_si.grid(row=0, column=0, padx=15)
+
+        self.boton_no = tk.Button(botones_frame, text="No", font=("Arial", 16, "bold"),
+                                  bg="red", fg="white", width=10, command=lambda: self.responder("no"))
+        self.boton_no.grid(row=0, column=1, padx=15)
+
+    def iniciar_juego(self):
+        """Cambia a la pantalla de juego y muestra la primera pregunta"""
+        self.frame_inicio.pack_forget()
+        self.frame_juego.pack(expand=True, fill="both")
+        self.mostrar_pregunta(self.nodo_actual)
+
+    def mostrar_pregunta(self, nodo):
+        """Muestra la pregunta o el intento de carta"""
+        if isinstance(nodo, str):
+            self.pregunta_label.config(text=f"¿Tu carta es {nodo}?")
+        elif isinstance(nodo, dict):
+            pregunta = next(iter(nodo))
+            self.pregunta_label.config(text=pregunta)
+
+    def responder(self, respuesta):
+        """Gestiona las respuestas 'sí' o 'no'"""
+        if isinstance(self.nodo_actual, str):
+            if respuesta == "sí":
+                messagebox.showinfo("Akinator", "¡Lo adiviné!")
+                guardar_arbol(self.arbol)
+                self.root.destroy()
+            else:
+                self.aprender()
+            return
+
+        # Si es pregunta
+        pregunta = next(iter(self.nodo_actual))
+        siguiente = self.nodo_actual[pregunta].get(respuesta)
+
         if siguiente is None:
-            # Si para alguna razón la rama faltara, preguntar al usuario qué poner ahí:
-            print("No hay una rama definida para esa respuesta. Vamos a crearla.")
-            # pedimos si la rama debe ser una carta o pregunta: simplificamos pidiendo carta
-            nueva_carta = input("¿Qué carta debería ir en esta rama? Escribe el nombre: ").strip()
-            nodo[pregunta][respuesta] = nueva_carta
-            return nodo
-        # recorrer recursivamente la rama seleccionada
-        nodo[pregunta][respuesta] = recorrer_nodo(siguiente)
-        return nodo
+            messagebox.showinfo("Error", "Esta rama no está definida.")
+            return
 
-    # en caso improbable de estructura diferente, devolvemos sin cambios
-    return nodo
+        self.pila.append(self.nodo_actual)
+        self.nodo_actual = siguiente
+        self.mostrar_pregunta(self.nodo_actual)
 
-# -----------------------------------------------------------
-# Función principal del juego
-# -----------------------------------------------------------
+    def aprender(self):
+        """Cuando no adivina, aprende una nueva carta"""
+        carta_nueva = tk.simpledialog.askstring("Aprender", "¿Cuál era tu carta?")
+        if not carta_nueva:
+            return
+        pregunta_nueva = tk.simpledialog.askstring("Aprender", f"Escribe una pregunta que distinga a {carta_nueva}:")
+        if not pregunta_nueva:
+            return
+        respuesta_correcta = messagebox.askyesno("Aprender", f"Si la carta fuera {carta_nueva}, ¿la respuesta sería 'sí'?")
 
-def jugar():
-    """Ejecuta una partida completa: recorre el árbol, aprende si falla y guarda al final."""
-    print("Akinator Clash Royale - piensa en una carta y responde con 'sí' o 'no'.")
-    arbol = cargar_arbol()                 # cargar (o crear) árbol
-    arbol = recorrer_nodo(arbol)          # jugar y obtener árbol actualizado
-    guardar_arbol(arbol)                  # guardar aprendizaje
-    print("Progreso guardado en", ARCHIVO)
+        if respuesta_correcta:
+            nuevo = {pregunta_nueva: {"sí": carta_nueva, "no": self.nodo_actual}}
+        else:
+            nuevo = {pregunta_nueva: {"sí": self.nodo_actual, "no": carta_nueva}}
 
-# -----------------------------------------------------------
-# Ejecutable
-# -----------------------------------------------------------
+        if self.pila:
+            padre = self.pila.pop()
+            clave = next(iter(padre))
+            for r in ("sí", "no"):
+                if padre[clave][r] == self.nodo_actual:
+                    padre[clave][r] = nuevo
+                    break
+        else:
+            self.arbol = nuevo
+
+        guardar_arbol(self.arbol)
+        messagebox.showinfo("Akinator", "¡He aprendido una nueva carta!")
+        self.root.destroy()
+
 
 if __name__ == "__main__":
-    jugar()
+    root = tk.Tk()
+    app = AkinatorGUI(root)
+    root.mainloop()
